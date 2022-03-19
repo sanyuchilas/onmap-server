@@ -8,12 +8,17 @@ const User = sequelize.define('user', {
   password: {type: DataTypes.STRING},
   role: {type: DataTypes.STRING, defaultValue: 'USER'},
   avatar: {type: DataTypes.STRING, defaultValue: null},
-  friends: {type: DataTypes.STRING, defaultValue: '[]'}
+  friends: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
 })
 
 const Comrades = sequelize.define('comrades', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  comradeId: {type: DataTypes.STRING, defaultValue: '[]'}
+  comradeId: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
+})
+
+const AddFriends = sequelize.define('addfriends', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  friendId: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
 })
 
 const Placemark = sequelize.define('placemark', {
@@ -22,17 +27,20 @@ const Placemark = sequelize.define('placemark', {
   icon: {type: DataTypes.STRING},
   short_description: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
   full_description: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
-  images: {type: DataTypes.STRING, defaultValue: '[]'},
-  videos: {type: DataTypes.STRING, defaultValue: '[]'},
-  select_friends: {type: DataTypes.STRING, defaultValue: '[]'},
+  images: {type: DataTypes.STRING, defaultValue: JSON.stringify([])},
+  videos: {type: DataTypes.STRING, defaultValue: JSON.stringify([])},
+  select_friends: {type: DataTypes.STRING, defaultValue: JSON.stringify([])},
 })
 
 module.exports = {
-  User, Comrades, Placemark
+  User, Comrades, Placemark, AddFriends
 }
 
 User.hasOne(Comrades)
 Comrades.belongsTo(User)
+
+User.hasOne(AddFriends)
+AddFriends.belongsTo(User)
 
 User.hasMany(Placemark)
 Placemark.belongsTo(User)
