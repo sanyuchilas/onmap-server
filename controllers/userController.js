@@ -55,16 +55,93 @@ class UserController {
     return res.json({token})
   }
 
-  async comradesAndAddFriends(req, res, next) {
+  async getFriends(req, res, next) {
     const {id} = req.body
     let data = {}
     if (id) {
       let comrades = await Comrades.findOne({where: {userId: id}})
       let addFriends = await AddFriends.findOne({where: {userId: id}})
-      data.comradeId = JSON.parse(comrades.comradeId)
-      data.friendId = JSON.parse(addFriends.friendId)
+      let friends = await User.findOne({where: {id}})
+      data.comrades = JSON.parse(comrades.comradeId)
+      data.addFriends = JSON.parse(addFriends.friendId)
+      data.friends = JSON.parse(friends.friends)
+      return res.json(data)
     }
-    return res.json(data)
+    return next(ApiError.internal('Возникла непредвиденная ошибка!'))
+  }
+
+  async putFriends(req, res, next) {
+    const {id, friends, event} = req.body
+
+    if (event === 'delete') {
+
+      let user = await User.findOne({where: {id: friends.newFriendId}})
+
+      let needFriends = JSON.parse(user.friends)
+      needFriends = needFriends.filter(needId => needId !== id)
+
+      await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
+
+      await User.update({friends: JSON.stringify(friends.friends)}, {where: {id}})
+      return res.json({message: 'Друг удалён'})
+
+    } else if (event === 'accept' || event === 'decline') {
+
+      let {friendId} = await AddFriends.findOne({where: {userId: friends.newFriendId}})
+
+      friendId = JSON.parse(friendId)
+      friendId = friendId.filter(needId => needId !== id)
+
+      await AddFriends.update({friendId: JSON.stringify(friendId)}, {where: {userId: friends.newFriendId}})
+
+      if (event === 'decline') {
+
+        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: id}})
+
+        return res.json({message: 'Запрос отклонён'})
+      } else {
+
+        let user = await User.findOne({where: {id: friends.newFriendId}})
+        
+        let needFriends = JSON.parse(user.friends)
+        needFriends.push(id)
+
+        await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
+
+        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: id}})
+        await User.update({friends: JSON.stringify(friends.friends)}, {where: {id}})
+
+        return res.json({message: 'Запрос принят'})
+      }
+
+    } else if (event === 'cancel') {
+
+      let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
+      
+      comradeId = JSON.parse(comradeId)
+      comradeId = comradeId.filter(needId => needId !== id)
+
+      await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
+
+      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: id}})
+
+      return res.json({message: 'Ваш запрос отменён'})
+
+    } else if (event === 'addFriend') {
+
+      let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
+      
+      comradeId = JSON.parse(comradeId)
+      comradeId.push(id)
+
+      await AddFriends.update({friendId: JSON.stringify(friends.friends)}, {where: {userId: id}})
+      await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
+
+      return res.json({message: 'Запрос отправлен'})
+
+    }
+
+    return next(ApiError.internal('Возникла непредвиденная ошибка!'))
   }
 
 }
