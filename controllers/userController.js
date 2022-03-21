@@ -70,33 +70,41 @@ class UserController {
     return next(ApiError.internal('Возникла непредвиденная ошибка!'))
   }
 
+  async getOne(req, res, next) {
+    const {id} = req.query
+    const user = await User.findOne({where: {id}})
+    if (!user) {
+      return next(ApiError.badRequest('Пользователя с таким ID не существует! Введите другой ID'))
+    }
+    return res.json(user)
+  }
+
   async putFriends(req, res, next) {
-    const {id, friends, event} = req.body
+    const {friend, friends, event} = req.body
 
     if (event === 'delete') {
 
       let user = await User.findOne({where: {id: friends.newFriendId}})
 
       let needFriends = JSON.parse(user.friends)
-      needFriends = needFriends.filter(needId => needId !== id)
+      needFriends = needFriends.filter(need => need.id !== friend.id)
 
       await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
 
-      await User.update({friends: JSON.stringify(friends.friends)}, {where: {id}})
+      await User.update({friends: JSON.stringify(friends.friends)}, {where: {id: friend.id}})
       return res.json({message: 'Друг удалён'})
 
     } else if (event === 'accept' || event === 'decline') {
-
       let {friendId} = await AddFriends.findOne({where: {userId: friends.newFriendId}})
 
       friendId = JSON.parse(friendId)
-      friendId = friendId.filter(needId => needId !== id)
+      friendId = friendId.filter(need => need.id !== friend.id)
 
       await AddFriends.update({friendId: JSON.stringify(friendId)}, {where: {userId: friends.newFriendId}})
 
       if (event === 'decline') {
 
-        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: id}})
+        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: friend.id}})
 
         return res.json({message: 'Запрос отклонён'})
       } else {
@@ -104,12 +112,12 @@ class UserController {
         let user = await User.findOne({where: {id: friends.newFriendId}})
         
         let needFriends = JSON.parse(user.friends)
-        needFriends.push(id)
+        needFriends.push(friend)
 
         await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
 
-        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: id}})
-        await User.update({friends: JSON.stringify(friends.friends)}, {where: {id}})
+        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: friend.id}})
+        await User.update({friends: JSON.stringify(friends.friends)}, {where: {id: friend.id}})
 
         return res.json({message: 'Запрос принят'})
       }
@@ -119,26 +127,25 @@ class UserController {
       let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
       
       comradeId = JSON.parse(comradeId)
-      comradeId = comradeId.filter(needId => needId !== id)
+      comradeId = comradeId.filter(need => need.id !== friend.id)
 
       await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
 
-      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: id}})
+      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: friend.id}})
 
       return res.json({message: 'Ваш запрос отменён'})
 
     } else if (event === 'addFriend') {
 
       let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
-      
+        
       comradeId = JSON.parse(comradeId)
-      comradeId.push(id)
+      comradeId.push(friend)
 
-      await AddFriends.update({friendId: JSON.stringify(friends.friends)}, {where: {userId: id}})
+      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: friend.id}})
       await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
 
       return res.json({message: 'Запрос отправлен'})
-
     }
 
     return next(ApiError.internal('Возникла непредвиденная ошибка!'))
