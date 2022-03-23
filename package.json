@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "add": "node add.js"
   },
   "keywords": [],
   "author": "Alexander <alex-keyer@mail.ru>",
