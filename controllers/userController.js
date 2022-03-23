@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const {User, Comrades, AddFriends} = require('../models/models')
+const {User, Comrades, AddFriends, PlacemarkFriend} = require('../models/models')
 
 const generateJwt = (id, email, role, name, avatar, friends) => {
   return jwt.sign(
@@ -29,6 +29,7 @@ class UserController {
     const user = await User.create({email, role, password: hashPassword, name, avatar})
     await Comrades.create({userId: user.id})
     await AddFriends.create({userId: user.id})
+    await PlacemarkFriend.create({userId: user.id})
     const token = generateJwt(user.id, user.email, user.role, user.name, user.avatar, user.friends)
     
     return res.json({token})
