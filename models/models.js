@@ -8,26 +8,30 @@ const User = sequelize.define('user', {
   password: {type: DataTypes.STRING},
   role: {type: DataTypes.STRING, defaultValue: 'USER'},
   avatar: {type: DataTypes.STRING, defaultValue: ''},
-  friends: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
 })
 
 const Comrades = sequelize.define('comrades', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  comradeId: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
+  comrade: {type: DataTypes.STRING, defaultValue: ''}
 })
 
 const AddFriends = sequelize.define('addfriends', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  friendId: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
+  addFriend: {type: DataTypes.STRING, defaultValue: ''}
+})
+
+const Friends = sequelize.define('friends', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  friend: {type: DataTypes.STRING, defaultValue: ''}
 })
 
 const PlacemarkPrivate = sequelize.define('placemarkprivate', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   coordinates: {type: DataTypes.STRING, allowNull: false},
   icon: {type: DataTypes.STRING},
-  short_description: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
-  full_description: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
-  files: {type: DataTypes.STRING, defaultValue: JSON.stringify([])},
+  shortDescription: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
+  fullDescription: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
+  files: {type: DataTypes.STRING, defaultValue: ''},
 })
 
 const Placemark = sequelize.define('placemark', {
@@ -39,20 +43,23 @@ const Placemark = sequelize.define('placemark', {
 
 const PlacemarkFriend = sequelize.define('placemarkfriend', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  placemarks: {type: DataTypes.STRING, defaultValue: JSON.stringify([])}
+  placemark: {type: DataTypes.STRING, defaultValue: ''}
 })
 
 module.exports = {
-  User, Comrades, Placemark, AddFriends, PlacemarkPrivate, PlacemarkFriend
+  User, Comrades, Placemark, AddFriends, PlacemarkPrivate, PlacemarkFriend, Friends
 }
 
-User.hasOne(Comrades)
+User.hasMany(Comrades)
 Comrades.belongsTo(User)
 
-User.hasOne(PlacemarkFriend)
+User.hasMany(PlacemarkFriend)
 PlacemarkFriend.belongsTo(User)
 
-User.hasOne(AddFriends)
+User.hasMany(Friends)
+Friends.belongsTo(User)
+
+User.hasMany(AddFriends)
 AddFriends.belongsTo(User)
 
 User.hasMany(PlacemarkPrivate)

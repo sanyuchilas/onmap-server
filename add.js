@@ -10,8 +10,12 @@ const add = () => {
   
   ]
   
-  templates.map(template => {
-    Placemark.create({coordinates: JSON.stringify(template[0]), icon: template[1], model: template[2]})
+  templates.map(async template => {
+
+    let candidate = await Placemark.findOne({where: {coordinates: JSON.stringify(template[0])}})
+
+    if (!candidate) Placemark.create({coordinates: JSON.stringify(template[0]), icon: template[1], model: template[2]})
+
   })
 }
 
