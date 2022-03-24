@@ -4,11 +4,11 @@ const {PlacemarkPrivate, Placemark, PlacemarkFriend} = require('../models/models
 class PlacemarkController {
 
   async createOne(req, res, next) {
-    const {coordinates, icon, short_description, full_description, files, userId} = req.body
+    const {coordinates, icon, shortDescription, fullDescription, files, userId} = req.body
 
-    console.log(coordinates, icon, short_description, full_description, files, userId)
+    console.log(coordinates, icon, shortDescription, fullDescription, files, userId)
 
-    const placemark = await PlacemarkPrivate.create({coordinates: JSON.stringify(coordinates), icon, short_description, full_description, files, userId})
+    const placemark = await PlacemarkPrivate.create({coordinates: JSON.stringify(coordinates), icon, shortDescription, fullDescription, files, userId})
 
     return res.json({placemark, message: 'Метка успешно добавлена'})
   }
@@ -33,9 +33,9 @@ class PlacemarkController {
   }
 
   async putOne(req, res, next) {
-    const {placemarkId, coordinates, icon, short_description, full_description, files} = req.body
+    const {placemarkId, coordinates, icon, shortDescription, fullDescription, files} = req.body
 
-    await PlacemarkPrivate.update({coordinates, icon, short_description, full_description, files}, {where: {id: placemarkId}})
+    await PlacemarkPrivate.update({coordinates, icon, shortDescription, fullDescription, files}, {where: {id: placemarkId}})
   }
 
   async getOne(req, res, next) {

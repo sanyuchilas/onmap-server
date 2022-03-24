@@ -1,11 +1,11 @@
 const ApiError = require('../error/ApiError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const {User, Comrades, AddFriends, PlacemarkFriend} = require('../models/models')
+const {User, Comrades, AddFriends, Friends} = require('../models/models')
 
-const generateJwt = (id, email, role, name, avatar, friends) => {
+const generateJwt = (id, email, role, name, avatar) => {
   return jwt.sign(
-    {id, email, role, avatar, name, friends}, 
+    {id, email, role, avatar, name}, 
     process.env.SECRET_KEY,
     {expiresIn: '24h'}
   )
@@ -27,10 +27,8 @@ class UserController {
 
     const hashPassword = await bcrypt.hash(password, 5)
     const user = await User.create({email, role, password: hashPassword, name, avatar})
-    await Comrades.create({userId: user.id})
-    await AddFriends.create({userId: user.id})
-    await PlacemarkFriend.create({userId: user.id})
-    const token = generateJwt(user.id, user.email, user.role, user.name, user.avatar, user.friends)
+
+    const token = generateJwt(user.id, user.email, user.role, user.name, user.avatar)
     
     return res.json({token})
   }
@@ -47,25 +45,25 @@ class UserController {
       return next(ApiError.internal('Указан неверный пароль!'))
     }
 
-    const token = generateJwt(user.id, user.email, user.role, user.name, user.avatar, user.friends)
+    const token = generateJwt(user.id, user.email, user.role, user.name, user.avatar)
     return res.json({token})
   }
 
   async check(req, res, next) {
-    const token = generateJwt(req.user.id, req.user.email, req.user.role, req.user.name, req.user.avatar, req.user.friends)
+    const token = generateJwt(req.user.id, req.user.email, req.user.role, req.user.name, req.user.avatar)
     return res.json({token})
   }
 
   async getFriends(req, res, next) {
-    const {id} = req.body
+    const {id} = req.query
     let data = {}
     if (id) {
-      let comrades = await Comrades.findOne({where: {userId: id}})
-      let addFriends = await AddFriends.findOne({where: {userId: id}})
-      let friends = await User.findOne({where: {id}})
-      data.comrades = JSON.parse(comrades.comradeId)
-      data.addFriends = JSON.parse(addFriends.friendId)
-      data.friends = JSON.parse(friends.friends)
+      let comrades = await Comrades.findAll({where: {userId: id}})
+      let addFriends = await AddFriends.findAll({where: {userId: id}})
+      let friends = await Friends.findAll({where: {userId: id}})
+      data.comrades = comrades.map(comrade => JSON.parse(comrade.comrade))
+      data.addFriends = addFriends.map(addFriend => JSON.parse(addFriend.addFriend))
+      data.friends = friends.map(friend => JSON.parse(friend.friend))
       return res.json(data)
     }
     return next(ApiError.internal('Возникла непредвиденная ошибка!'))
@@ -81,70 +79,46 @@ class UserController {
   }
 
   async putFriends(req, res, next) {
-    const {friend, friends, event} = req.body
+    const {user, friend, event} = req.body
 
     if (event === 'delete') {
 
-      let user = await User.findOne({where: {id: friends.newFriendId}})
+      await Friends.destroy({where: {userId: user.id, friend: JSON.stringify(friend)}})
 
-      let needFriends = JSON.parse(user.friends)
-      needFriends = needFriends.filter(need => need.id !== friend.id)
+      await Friends.destroy({where: {userId: friend.id, friend: JSON.stringify(user)}})
 
-      await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
-
-      await User.update({friends: JSON.stringify(friends.friends)}, {where: {id: friend.id}})
       return res.json({message: 'Друг удалён'})
 
     } else if (event === 'accept' || event === 'decline') {
-      let {friendId} = await AddFriends.findOne({where: {userId: friends.newFriendId}})
+      
+      await AddFriends.destroy({where: {addFriend: JSON.stringify(user), userId: friend.id}})
 
-      friendId = JSON.parse(friendId)
-      friendId = friendId.filter(need => need.id !== friend.id)
+      await Comrades.destroy({where: {userId: user.id, comrade: JSON.stringify(friend)}})
 
-      await AddFriends.update({friendId: JSON.stringify(friendId)}, {where: {userId: friends.newFriendId}})
+      if (event === 'accept') {
 
-      if (event === 'decline') {
+        await Friends.create({friend: JSON.stringify(friend), userId: user.id})
 
-        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: friend.id}})
-
-        return res.json({message: 'Запрос отклонён'})
-      } else {
-
-        let user = await User.findOne({where: {id: friends.newFriendId}})
-        
-        let needFriends = JSON.parse(user.friends)
-        needFriends.push(friend)
-
-        await User.update({friends: JSON.stringify(needFriends)}, {where: {id: friends.newFriendId}})
-
-        await Comrades.update({comradeId: JSON.stringify(friends.comrades)}, {where: {userId: friend.id}})
-        await User.update({friends: JSON.stringify(friends.friends)}, {where: {id: friend.id}})
+        await Friends.create({friend: JSON.stringify(user), userId: friend.id})
 
         return res.json({message: 'Запрос принят'})
+      } else {
+        return res.json({message: 'Запрос отклонён'})
       }
 
     } else if (event === 'cancel') {
 
-      let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
-      
-      comradeId = JSON.parse(comradeId)
-      comradeId = comradeId.filter(need => need.id !== friend.id)
+      await AddFriends.destroy({where: {addFriend: JSON.stringify(friend), userId: user.id}})
 
-      await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
-
-      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: friend.id}})
+      await Comrades.destroy({where: {comrade: JSON.stringify(user), userId: friend.id}})
 
       return res.json({message: 'Ваш запрос отменён'})
 
     } else if (event === 'addFriend') {
 
-      let {comradeId} = await Comrades.findOne({where: {userId: friends.newFriendId}})
-        
-      comradeId = JSON.parse(comradeId)
-      comradeId.push(friend)
+      await Comrades.create({comrade: JSON.stringify(user), userId: friend.id})
 
-      await AddFriends.update({friendId: JSON.stringify(friends.addFriends)}, {where: {userId: friend.id}})
-      await Comrades.update({comradeId: JSON.stringify(comradeId)}, {where: {userId: friends.newFriendId}})
+      await AddFriends.create({addFriend: JSON.stringify(friend), userId: user.id})
 
       return res.json({message: 'Запрос отправлен'})
     }
