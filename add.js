@@ -6,9 +6,9 @@ const add = () => {
       [51.17885736098834,-1.8261605410343302],
      '', 
      'https://earth.google.com/web/search/Stonehenge,+Solsberi,+UK'
-    ],
-  
+    ]
   ]
+
   
   templates.map(async template => {
 
