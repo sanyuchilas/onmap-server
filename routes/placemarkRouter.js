@@ -5,7 +5,7 @@ const placemarkController = require('../controllers/placemarkController')
 router.get('/getAllPrivate', placemarkController.getAllPrivate)
 router.get('/getAllPublic', placemarkController.getAllPublic)
 router.get('/getFriendsPlacemarks', placemarkController.getFriendsPlacemarks)
-router.get('/getOne', placemarkController.getOne)
+router.get('/getOnePublic', placemarkController.getOnePublic)
 
 router.post('/createOne', placemarkController.createOne)
 

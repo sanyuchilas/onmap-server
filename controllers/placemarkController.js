@@ -54,11 +54,11 @@ class PlacemarkController {
     await PlacemarkPrivate.update({coordinates, icon, shortDescription, fullDescription, files}, {where: {id: placemarkId}})
   }
 
-  async getOne(req, res, next) {
-    const {placemarkId} = req.query
-    const placemark = await PlacemarkPrivate.findOne({where: {id: placemarkId}})
+  async getOnePublic(req, res, next) {
+    const {id} = req.query
+    const {shortDescription, title} = await Placemark.findOne({where: {id}})
 
-    return res.json(placemark)
+    return res.json({shortDescription, title})
   }
 }
 
