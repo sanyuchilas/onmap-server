@@ -39,6 +39,8 @@ const Placemark = sequelize.define('placemark', {
   coordinates: {type: DataTypes.STRING, allowNull: false},
   icon: {type: DataTypes.STRING},
   model: {type: DataTypes.STRING, defaultValue: ''},
+  title: {type: DataTypes.STRING, defaultValue: ''},
+  shortDescription: {type: DataTypes.STRING, defaultValue: ''},
 })
 
 const PlacemarkFriend = sequelize.define('placemarkfriend', {
