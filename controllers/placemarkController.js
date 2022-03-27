@@ -11,12 +11,12 @@ class PlacemarkController {
     const {id} = await PlacemarkPrivate.create({coordinates, icon, shortDescription, fullDescription, files, userId})
 
     selectFriendsId.forEach(async friendId => {
-      const {name} = await User.findOne({where: {id: friendId}})
+      const {name} = await User.findOne({where: {id: userId}})
       PlacemarkFriend.create({placemark: JSON.stringify({
         id: id,
         coordinates,
         icon,
-        friend: {id, name}
+        friend: {userId, name}
       }), userId: friendId})
     })
 
@@ -59,6 +59,20 @@ class PlacemarkController {
     const {shortDescription, title} = await Placemark.findOne({where: {id}})
 
     return res.json({shortDescription, title})
+  }
+
+  async getOneFriend(req, res, next) {
+    const {id} = req.query
+    const {shortDescription, title} = await Placemark.findOne({where: {id}})
+
+    return res.json({shortDescription, title})
+  }
+
+  async getOnePrivate(req, res, next) {
+    const {id} = req.query
+    const placemark = await PlacemarkPrivate.findOne({where: {id}})
+
+    return res.json(placemark)
   }
 }
 

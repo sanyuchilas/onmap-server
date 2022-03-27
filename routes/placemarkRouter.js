@@ -6,6 +6,7 @@ router.get('/getAllPrivate', placemarkController.getAllPrivate)
 router.get('/getAllPublic', placemarkController.getAllPublic)
 router.get('/getFriendsPlacemarks', placemarkController.getFriendsPlacemarks)
 router.get('/getOnePublic', placemarkController.getOnePublic)
+router.get('/getOnePrivate', placemarkController.getOnePrivate)
 
 router.post('/createOne', placemarkController.createOne)
 
