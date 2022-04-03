@@ -4,7 +4,7 @@ const {DataTypes} = require('sequelize')
 const User = sequelize.define('user', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   email: {type: DataTypes.STRING, unique: true},
-  name: {type: DataTypes.STRING},
+  name: {type: DataTypes.STRING(64)},
   password: {type: DataTypes.STRING},
   role: {type: DataTypes.STRING, defaultValue: 'USER'},
   avatar: {type: DataTypes.STRING, defaultValue: ''},
@@ -30,7 +30,7 @@ const PlacemarkPrivate = sequelize.define('placemarkprivate', {
   coordinates: {type: DataTypes.STRING, allowNull: false},
   icon: {type: DataTypes.STRING},
   shortDescription: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
-  fullDescription: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
+  fullDescription: {type: DataTypes.STRING(1023), defaultValue: 'Описание отсутствует'},
   files: {type: DataTypes.STRING, defaultValue: ''},
 })
 
@@ -45,7 +45,7 @@ const Placemark = sequelize.define('placemark', {
 
 const PlacemarkFriend = sequelize.define('placemarkfriend', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  placemark: {type: DataTypes.STRING, defaultValue: ''}
+  placemark: {type: DataTypes.STRING(511), defaultValue: ''}
 })
 
 module.exports = {
