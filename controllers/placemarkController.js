@@ -16,8 +16,8 @@ class PlacemarkController {
         id: id,
         coordinates,
         icon,
-        friend: {userId, name}
-      }), userId: friendId})
+        friendName: name
+      }), userId: friendId,  friendId: userId})
     })
 
     return res.json({placemark: {id, coordinates, icon}, message: 'Метка успешно добавлена'})

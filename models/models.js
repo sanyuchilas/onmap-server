@@ -45,7 +45,8 @@ const Placemark = sequelize.define('placemark', {
 
 const PlacemarkFriend = sequelize.define('placemarkfriend', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  placemark: {type: DataTypes.STRING(511), defaultValue: ''}
+  placemark: {type: DataTypes.STRING(511), defaultValue: ''},
+  friendId: {type: DataTypes.INTEGER}
 })
 
 module.exports = {

@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const {User, Comrades, AddFriends, Friends} = require('../models/models')
+const {User, Comrades, AddFriends, Friends, PlacemarkFriend} = require('../models/models')
 
 const generateJwt = (id, email, role, name, avatar) => {
   return jwt.sign(
@@ -26,7 +26,7 @@ class UserController {
     }
 
     const hashPassword = await bcrypt.hash(password, 5)
-    const user = await User.create({email, role, password: hashPassword, name, avatar})
+    await User.create({email, role, password: hashPassword, name, avatar})
     
     return res.json({message: 'Регистариция успешно завершена'})
   }
@@ -81,11 +81,23 @@ class UserController {
 
     if (event === 'delete') {
 
+      // Удаляю метки друга
+
+      let idArr = await PlacemarkFriend.findAll({where: {userId: user.id, friendId: friend.id}})
+
+      idArr = idArr.map(placemark => JSON.parse(placemark.placemark).id)
+   
+      await PlacemarkFriend.destroy({where: {userId: user.id, friendId: friend.id}})
+      
+      await PlacemarkFriend.destroy({where: {userId: friend.id, friendId: user.id}})
+
+      // Удаляю друга
+
       await Friends.destroy({where: {userId: user.id, friend: JSON.stringify(friend)}})
 
       await Friends.destroy({where: {userId: friend.id, friend: JSON.stringify(user)}})
 
-      return res.json({message: 'Друг удалён'})
+      return res.json({idArr, message: 'Друг удалён'})
 
     } else if (event === 'accept' || event === 'decline') {
       
