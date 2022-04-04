@@ -45,12 +45,14 @@ class PlacemarkController {
   async getFriendsPlacemarks(req, res, next) {
     const {userId} = req.query
 
+    // Получаем список id-шников друзей пользователя
     let friends = await Friends.findAll({where: {userId}})
     friends = friends.map(friend => JSON.parse(friend.friend).id)
 
     const placemarks = await PlacemarkFriend.findAll({
       where: {
-        userId, 
+        userId,
+        // Проверяем, что пользователь действительно наш друг
         friendId: {
           [Op.or]: friends.length ? friends : [-1]
         }
