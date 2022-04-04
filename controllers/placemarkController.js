@@ -1,5 +1,6 @@
 const ApiError = require('../error/ApiError')
-const {PlacemarkPrivate, Placemark, PlacemarkFriend, User} = require('../models/models')
+const {Op} = require('sequelize')
+const {PlacemarkPrivate, Placemark, PlacemarkFriend, User, Friends} = require('../models/models')
 
 class PlacemarkController {
 
@@ -43,8 +44,19 @@ class PlacemarkController {
 
   async getFriendsPlacemarks(req, res, next) {
     const {userId} = req.query
-    const placemarks = await PlacemarkFriend.findAll({where: {userId}})
 
+    let friends = await Friends.findAll({where: {userId}})
+    friends = friends.map(friend => JSON.parse(friend.friend).id)
+
+    const placemarks = await PlacemarkFriend.findAll({
+      where: {
+        userId, 
+        friendId: {
+          [Op.or]: friends.length ? friends : [-1]
+        }
+      }
+    })
+    
     return res.json(placemarks.map(placemark => JSON.parse(placemark.placemark)))
   }
 

@@ -82,16 +82,15 @@ class UserController {
     if (event === 'delete') {
 
       // Удаляю метки друга
-
-      let idArr = await PlacemarkFriend.findAll({where: {userId: user.id, friendId: friend.id}})
-
-      idArr = idArr.map(placemark => JSON.parse(placemark.placemark).id)
    
-      await PlacemarkFriend.destroy({where: {userId: user.id, friendId: friend.id}})
+      // await PlacemarkFriend.destroy({where: {userId: user.id, friendId: friend.id}})
       
-      await PlacemarkFriend.destroy({where: {userId: friend.id, friendId: user.id}})
+      // await PlacemarkFriend.destroy({where: {userId: friend.id, friendId: user.id}})
 
       // Удаляю друга
+
+      let idArr = await PlacemarkFriend.findAll({where: {userId: user.id, friendId: friend.id}})
+      idArr = idArr.map(placemark => JSON.parse(placemark.placemark).id)
 
       await Friends.destroy({where: {userId: user.id, friend: JSON.stringify(friend)}})
 
