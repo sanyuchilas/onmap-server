@@ -14,11 +14,10 @@ class PlacemarkController {
     selectFriendsId.forEach(async friendId => {
       const {name} = await User.findOne({where: {id: userId}})
       PlacemarkFriend.create({placemark: JSON.stringify({
-        id: id,
         coordinates,
         icon,
         friendName: name
-      }), userId: friendId,  friendId: userId})
+      }), userId: friendId,  friendId: userId, placemarkId: id})
     })
 
     return res.json({placemark: {id, coordinates, icon}, message: 'Метка успешно добавлена'})
@@ -59,11 +58,15 @@ class PlacemarkController {
       }
     })
     
-    return res.json(placemarks.map(placemark => JSON.parse(placemark.placemark)))
+    return res.json(placemarks.map(placemark => {
+      let cur = JSON.parse(placemark.placemark)
+      cur.id = placemark.placemarkId
+      return {...cur}
+    }))
   }
 
   async putOne(req, res, next) {
-    const {placemarkId, coordinates, icon, shortDescription, fullDescription, files} = req.body
+    const {coordinates, icon, shortDescription, fullDescription, files, userId, selectFriendsId} = req.body
 
     await PlacemarkPrivate.update({coordinates, icon, shortDescription, fullDescription, files}, {where: {id: placemarkId}})
   }
@@ -84,6 +87,7 @@ class PlacemarkController {
 
   async getOnePrivate(req, res, next) {
     const {id} = req.query
+    console.log(id)
     const placemark = await PlacemarkPrivate.findOne({where: {id}})
 
     return res.json(placemark)

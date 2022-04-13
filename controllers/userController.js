@@ -66,7 +66,7 @@ class UserController {
     }
     return next(ApiError.internal('Возникла непредвиденная ошибка!'))
   }
-
+  
   async getOne(req, res, next) {
     const {id} = req.query
     const user = await User.findOne({where: {id}})
