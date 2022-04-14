@@ -66,9 +66,27 @@ class PlacemarkController {
   }
 
   async putOne(req, res, next) {
-    const {coordinates, icon, shortDescription, fullDescription, files, userId, selectFriendsId} = req.body
+    const {id, coordinates, icon, shortDescription, fullDescription, files, userId, selectFriendsId} = req.body
 
-    await PlacemarkPrivate.update({coordinates, icon, shortDescription, fullDescription, files}, {where: {id: placemarkId}})
+    let friendsId = await Friends.findAll({where: {userId}})
+    friendsId = friendsId.map(row => JSON.parse(row.friend).id)
+
+    friendsId.forEach(async friendId => {
+      await PlacemarkFriend.destroy({where: {userId: friendId}})
+    })
+
+    selectFriendsId.forEach(async friendId => {
+      const {name} = await User.findOne({where: {id: userId}})
+      PlacemarkFriend.create({placemark: JSON.stringify({
+        coordinates,
+        icon,
+        friendName: name
+      }), userId: friendId,  friendId: userId, placemarkId: id})
+    })
+
+    await PlacemarkPrivate.update({icon, shortDescription, fullDescription, files}, {where: {id}})
+
+    return res.json({message: 'Метка успешно обновлена'})
   }
 
   async getOnePublic(req, res, next) {
@@ -87,10 +105,19 @@ class PlacemarkController {
 
   async getOnePrivate(req, res, next) {
     const {id} = req.query
-    console.log(id)
     const placemark = await PlacemarkPrivate.findOne({where: {id}})
+    let selectFriends = await PlacemarkFriend.findAll({where: {placemarkId: id}})
+    placemark.dataValues.selectFriends = selectFriends.map(friend => friend.userId)
 
     return res.json(placemark)
+  }
+
+  async deleteOne(req, res, next) {
+    const {id} = req.query
+
+    await PlacemarkPrivate.destroy({where: {id}})
+
+    return res.json({message: 'Метка успешно удалена'})
   }
 }
 

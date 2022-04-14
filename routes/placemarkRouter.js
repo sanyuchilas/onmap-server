@@ -12,4 +12,6 @@ router.post('/createOne', placemarkController.createOne)
 
 router.put('/putOne', placemarkController.putOne)
 
+router.delete('/deleteOne', placemarkController.deleteOne)
+
 module.exports = router
