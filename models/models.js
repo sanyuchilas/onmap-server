@@ -29,9 +29,9 @@ const PlacemarkPrivate = sequelize.define('placemarkprivate', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   coordinates: {type: DataTypes.STRING, allowNull: false},
   icon: {type: DataTypes.STRING},
-  shortDescription: {type: DataTypes.STRING, defaultValue: 'Описание отсутствует'},
-  fullDescription: {type: DataTypes.STRING(1023), defaultValue: 'Описание отсутствует'},
-  files: {type: DataTypes.STRING, defaultValue: ''},
+  shortDescription: {type: DataTypes.STRING},
+  fullDescription: {type: DataTypes.STRING(1023)},
+  files: {type: DataTypes.STRING(4095), defaultValue: ''},
 })
 
 const Placemark = sequelize.define('placemark', {

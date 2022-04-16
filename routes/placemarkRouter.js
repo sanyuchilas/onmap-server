@@ -1,5 +1,6 @@
 const Router = require('express')
 const router = new Router()
+const fileMiddleware = require('../middleware/fileMiddleware')
 const placemarkController = require('../controllers/placemarkController')
 
 router.get('/getAllPrivate', placemarkController.getAllPrivate)
@@ -8,9 +9,9 @@ router.get('/getFriendsPlacemarks', placemarkController.getFriendsPlacemarks)
 router.get('/getOnePublic', placemarkController.getOnePublic)
 router.get('/getOnePrivate', placemarkController.getOnePrivate)
 
-router.post('/createOne', placemarkController.createOne)
+router.post('/createOne', fileMiddleware.any('files'), placemarkController.createOne)
 
-router.put('/putOne', placemarkController.putOne)
+router.put('/putOne', fileMiddleware.any('files'), placemarkController.putOne)
 
 router.delete('/deleteOne', placemarkController.deleteOne)
 

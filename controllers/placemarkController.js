@@ -2,14 +2,21 @@ const ApiError = require('../error/ApiError')
 const {Op} = require('sequelize')
 const {PlacemarkPrivate, Placemark, PlacemarkFriend, User, Friends} = require('../models/models')
 
+const fs = require('fs')
+const path = require('path')
+
 class PlacemarkController {
 
   async createOne(req, res, next) {
-    let {coordinates, icon, shortDescription, fullDescription, files, userId, selectFriendsId} = req.body
+    let {coordinates, icon, shortDescription, fullDescription, userId, selectFriendsId} = req.body
+    let files = []
+    if (req.files) {
+      files = req.files.map(file => file.filename)
+    }
 
-    coordinates = JSON.stringify(coordinates)
+    selectFriendsId = JSON.parse(selectFriendsId) 
 
-    const {id} = await PlacemarkPrivate.create({coordinates, icon, shortDescription, fullDescription, files, userId})
+    const {id} = await PlacemarkPrivate.create({coordinates, icon, shortDescription, fullDescription, files: JSON.stringify(files), userId})
 
     selectFriendsId.forEach(async friendId => {
       const {name} = await User.findOne({where: {id: userId}})
@@ -66,7 +73,31 @@ class PlacemarkController {
   }
 
   async putOne(req, res, next) {
-    const {id, coordinates, icon, shortDescription, fullDescription, files, userId, selectFriendsId} = req.body
+    let {coordinates, icon, shortDescription, fullDescription, userId, selectFriendsId, deleteFiles, id} = req.body
+    let files = []
+    if (req.files) {
+      let oldFiles = await PlacemarkPrivate.findOne({where: {id}})
+
+      deleteFiles = JSON.parse(deleteFiles)
+
+      oldFiles = JSON.parse(oldFiles.files)
+      oldFiles = oldFiles.filter(oldFile => {
+        for (let file of deleteFiles) {
+          if (file === oldFile) return true
+        }
+
+        fs.unlink(path.join(__dirname, '../users-files', oldFile), e => {
+          e ? console.log(e) : console.log(`Файл ${oldFile} удалён!`)
+        })
+
+        return false
+      })
+
+      files = req.files.map(file => file.filename)
+      files = files.concat(oldFiles)
+    }
+
+    selectFriendsId = JSON.parse(selectFriendsId) 
 
     let friendsId = await Friends.findAll({where: {userId}})
     friendsId = friendsId.map(row => JSON.parse(row.friend).id)
@@ -84,7 +115,7 @@ class PlacemarkController {
       }), userId: friendId,  friendId: userId, placemarkId: id})
     })
 
-    await PlacemarkPrivate.update({icon, shortDescription, fullDescription, files}, {where: {id}})
+    await PlacemarkPrivate.update({icon, shortDescription, fullDescription, files: JSON.stringify(files)}, {where: {id}})
 
     return res.json({message: 'Метка успешно обновлена'})
   }
@@ -115,6 +146,7 @@ class PlacemarkController {
   async deleteOne(req, res, next) {
     const {id} = req.query
 
+    await PlacemarkFriend.destroy({where: {placemarkId: id}})
     await PlacemarkPrivate.destroy({where: {id}})
 
     return res.json({message: 'Метка успешно удалена'})
