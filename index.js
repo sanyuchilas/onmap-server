@@ -6,7 +6,7 @@ const models = require('./models/models')
 const cors = require('cors')
 const router = require('./routes/routes')
 const errorHandler = require('./middleware/ErrorHandlingMiddleware')
-const add = require('./add')
+// const add = require('./add')
 
 const PORT = process.env.PORT || 5000
 
@@ -33,4 +33,4 @@ const start = async () => {
 
 start()
 
-add.add()
+// add.add()
