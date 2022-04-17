@@ -2,10 +2,20 @@ const multer = require('multer');
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, 'users-files/')
+    try {
+      console.log('------------------')
+      cb(null, 'users-files/')
+    } catch(e) {
+      console.log(e)
+    }
   },
   filename(req, file, cb) {
-    cb(null, new Date().toISOString().split(':').join('.') + "--" + file.originalname)
+    try {
+      console.log('------------------')
+      cb(null, new Date().toISOString().split(':').join('.') + "--" + file.originalname)
+    } catch(e) {
+      console.log(e)
+    }
   }
 })
 
@@ -13,7 +23,12 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   // if (types.includes(file.mimetype)) {
+  try {
+    console.log('------------------')
     cb(null, true)
+  } catch(e) {
+    console.log(e)
+  }
   // } else {
   //   cb(null, false)
   // }

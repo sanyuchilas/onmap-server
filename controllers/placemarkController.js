@@ -146,6 +146,14 @@ class PlacemarkController {
   async deleteOne(req, res, next) {
     const {id} = req.query
 
+    let {files} = await PlacemarkPrivate.findOne({where: {id}})
+    files = JSON.parse(files)
+    files.forEach(file => {
+      fs.unlink(path.join(__dirname, '../users-files', file), e => {
+        e ? console.log(e) : console.log(`Файл ${file} удалён!`)
+      })
+    })
+
     await PlacemarkFriend.destroy({where: {placemarkId: id}})
     await PlacemarkPrivate.destroy({where: {id}})
 
